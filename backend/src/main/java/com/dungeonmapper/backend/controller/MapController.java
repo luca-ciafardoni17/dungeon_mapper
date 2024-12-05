@@ -77,7 +77,7 @@ public class MapController {
     }
 
     @PutMapping(value = "/user/{uid}/map/{mid}", produces = "application/json")
-    public ResponseEntity<Map> apiUpdateMap(@PathVariable("uid") Long uid, @PathVariable("mid") Long mid, @RequestBody Map map) throws NotFoundException {
+    public ResponseEntity<Map> apiUpdateMap(@PathVariable("uid") Long uid, @PathVariable("mid") Long mid, @RequestBody Map map) throws NotFoundException, DuplicateException {
         Map mapToUpdate = mapService.getUserMapById(mid, uid);
         if (mapToUpdate == null) {
             String errMsg = String.format("The map with id %s of user with id %s does not exist", mid, uid);
@@ -88,6 +88,12 @@ public class MapController {
         mapToUpdate.setName(map.getName());
         mapToUpdate.setTags(map.getTags());
         mapToUpdate.setDescription(map.getDescription());
+        String mapToUpdateName = mapToUpdate.getName();
+        List<Map> foundMaps = mapService.getUserMapsByName(mapToUpdateName, uid);
+        if (foundMaps.stream().anyMatch(mapMatch -> mapToUpdateName.equals(mapMatch.getName()))){
+            String errMsg = String.format("A map with name %s already exists!", mapToUpdateName);
+            throw new DuplicateException(errMsg);
+        }
         mapService.updateMap(mapToUpdate);
         return new ResponseEntity<Map>(mapToUpdate, HttpStatus.OK);
     }
