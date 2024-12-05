@@ -21,7 +21,6 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @SneakyThrows
     @PostMapping(value = "/user", produces = "application/json")
     public ResponseEntity<User> apiCreateUser(@RequestBody User user) throws DuplicateException {
         String email = user.getEmail();
@@ -33,7 +32,6 @@ public class UserController {
         return new ResponseEntity<User>(newUser, HttpStatus.CREATED);
     }
 
-    @SneakyThrows
     @GetMapping(value = "/user", produces = "application/json")
     public ResponseEntity<List<User>> apiGetAllUsers() {
         List<User> foundUsers = userService.getAllUsers();
@@ -41,8 +39,8 @@ public class UserController {
     }
 
     @SneakyThrows
-    @GetMapping(value = "/user/{id}", produces = "application/json")
-    public ResponseEntity<User> apiGetUserById(@PathVariable("id") Long id) throws NotFoundException {
+    @GetMapping(value = "/user/{uid}", produces = "application/json")
+    public ResponseEntity<User> apiGetUserById(@PathVariable("uid") Long id) throws NotFoundException {
         User foundUser = userService.getUserById(id);
         if (foundUser == null) {
             String errMsg = String.format("The user with id %s does not exist!", id);

@@ -1,5 +1,6 @@
 package com.dungeonmapper.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,6 +19,7 @@ public class Map {
 
     @ManyToOne
     @JoinColumn(nullable = false)
+    @JsonBackReference
     private User userId;
 
     @ElementCollection
