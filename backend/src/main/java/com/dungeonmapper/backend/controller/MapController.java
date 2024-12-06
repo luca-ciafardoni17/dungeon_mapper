@@ -26,10 +26,30 @@ public class MapController {
     @Autowired
     private UserService userService;
 
+    @GetMapping(value = "/map", produces = "application/json")
+    public ResponseEntity<List<Map>> apiGetAllMaps() {
+        List<Map> foundMaps = mapService.getAllMaps();
+        return new ResponseEntity<List<Map>>(foundMaps, HttpStatus.FOUND);
+    }
+
+    @GetMapping(value = "/map/{mid}", produces = "application/json")
+    public ResponseEntity<Map> apiGetMapById(@PathVariable("mid") Long mid) throws NotFoundException {
+        Map foundMap = mapService.getMapById(mid);
+        if (foundMap == null) {
+            String errMsg = String.format("The map with id %s was not found", mid);
+            throw new NotFoundException(errMsg);
+        }
+        return new ResponseEntity<Map>(foundMap, HttpStatus.FOUND);
+    }
+
     @PostMapping(value = "/user/{uid}/map", produces = "application/json")
-    public ResponseEntity<Map> apiCreateMap(@PathVariable("uid") Long uid, @RequestBody Map map) throws DuplicateException{
-        String mapName = map.getName();
+    public ResponseEntity<Map> apiCreateMap(@PathVariable("uid") Long uid, @RequestBody Map map) throws DuplicateException, NotFoundException{
         User user = userService.getUserById(uid);
+        if (user == null) {
+            String errMsg = String.format("The user with id %s does not exist!", uid);
+            throw new NotFoundException(errMsg);
+        }
+        String mapName = map.getName();
         List<Map> foundMaps = mapService.getUserMapsByName(mapName, uid);
         if (foundMaps.stream().anyMatch(mapMatch -> mapName.equals(mapMatch.getName()))){
             String errMsg = String.format("A map with name %s already exists!", mapName);
@@ -41,13 +61,23 @@ public class MapController {
     }
 
     @GetMapping(value = "/user/{uid}/map", produces = "application/json")
-    public ResponseEntity<List<Map>> apiGetAllUserMaps(@PathVariable("uid") Long uid) {
+    public ResponseEntity<List<Map>> apiGetAllUserMaps(@PathVariable("uid") Long uid) throws NotFoundException {
+        User user = userService.getUserById(uid);
+        if (user == null) {
+            String errMsg = String.format("The user with id %s does not exist!", uid);
+            throw new NotFoundException(errMsg);
+        }
         List<Map> foundMaps = mapService.getAllUserMaps(uid);
         return new ResponseEntity<List<Map>>(foundMaps, HttpStatus.FOUND);
     }
 
     @GetMapping(value = "/user/{uid}/map/{mid}", produces = "application/json")
     public ResponseEntity<Map> apiGetUserMapById(@PathVariable("uid") Long uid, @PathVariable("mid") Long mid) throws NotFoundException {
+        User user = userService.getUserById(uid);
+        if (user == null) {
+            String errMsg = String.format("The user with id %s does not exist!", uid);
+            throw new NotFoundException(errMsg);
+        }
         Map foundMap = mapService.getUserMapById(mid, uid);
         if (foundMap == null) {
             String errMsg = String.format("The map with id %s of user with id %s does not exist", mid, uid);
@@ -58,6 +88,11 @@ public class MapController {
 
     @GetMapping(value = "/user/{uid}/map/name/{name}", produces = "application/json")
     public ResponseEntity<List<Map>> apiGetUserMapByName(@PathVariable("uid") Long uid, @RequestBody String name) throws NotFoundException {
+        User user = userService.getUserById(uid);
+        if (user == null) {
+            String errMsg = String.format("The user with id %s does not exist!", uid);
+            throw new NotFoundException(errMsg);
+        }
         List<Map> foundMaps = mapService.getUserMapsByName(name, uid);
         if (foundMaps == null) {
             String errMsg = String.format("The map with name %s of user with %s does not exist", name, uid);
@@ -68,6 +103,11 @@ public class MapController {
 
     @GetMapping(value = "/user/{uid}/map/tag/{tag}", produces = "application/json")
     public ResponseEntity<List<Map>> apiGetUserMapByTag(@PathVariable("uid") Long uid, @RequestBody String tag) throws NotFoundException {
+        User user = userService.getUserById(uid);
+        if (user == null) {
+            String errMsg = String.format("The user with id %s does not exist!", uid);
+            throw new NotFoundException(errMsg);
+        }
         List<Map> foundMaps = mapService.getUserMapsByTag(tag, uid);
         if (foundMaps == null) {
             String errMsg = String.format("The map with name %s of user with %s does not exist", tag, uid);
@@ -77,29 +117,39 @@ public class MapController {
     }
 
     @PutMapping(value = "/user/{uid}/map/{mid}", produces = "application/json")
-    public ResponseEntity<Map> apiUpdateMap(@PathVariable("uid") Long uid, @PathVariable("mid") Long mid, @RequestBody Map map) throws NotFoundException, DuplicateException {
+    public ResponseEntity<Map> apiUpdateUserMap(@PathVariable("uid") Long uid, @PathVariable("mid") Long mid, @RequestBody Map map) throws NotFoundException, DuplicateException {
+        User user = userService.getUserById(uid);
+        if (user == null) {
+            String errMsg = String.format("The user with id %s does not exist!", uid);
+            throw new NotFoundException(errMsg);
+        }
         Map mapToUpdate = mapService.getUserMapById(mid, uid);
         if (mapToUpdate == null) {
             String errMsg = String.format("The map with id %s of user with id %s does not exist", mid, uid);
             throw new NotFoundException(errMsg);
+        }
+        String mapToUpdateName = map.getName();
+        List<Map> foundMaps = mapService.getUserMapsByName(mapToUpdateName, uid);
+        if (foundMaps.stream().anyMatch(mapMatch -> mapToUpdateName.equals(mapMatch.getName()))){
+            String errMsg = String.format("A map with name %s already exists!", mapToUpdateName);
+            throw new DuplicateException(errMsg);
         }
         Hibernate.initialize(mapToUpdate.getTags());        //Forcing Hibernate Lazy fetch
         Hibernate.initialize(mapToUpdate.getFloors());      //Forcing Hibernate Lazy fetch
         mapToUpdate.setName(map.getName());
         mapToUpdate.setTags(map.getTags());
         mapToUpdate.setDescription(map.getDescription());
-        String mapToUpdateName = mapToUpdate.getName();
-        List<Map> foundMaps = mapService.getUserMapsByName(mapToUpdateName, uid);
-        if (foundMaps.stream().anyMatch(mapMatch -> mapToUpdateName.equals(mapMatch.getName()))){
-            String errMsg = String.format("A map with name %s already exists!", mapToUpdateName);
-            throw new DuplicateException(errMsg);
-        }
         mapService.updateMap(mapToUpdate);
         return new ResponseEntity<Map>(mapToUpdate, HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/user/{uid}/map/{mid}", produces = "application/json")
-    public ResponseEntity<Map> apiDeleteMap(@PathVariable("uid") Long uid, @PathVariable("mid") Long mid) throws NotFoundException {
+    public ResponseEntity<Map> apiDeleteUserMap(@PathVariable("uid") Long uid, @PathVariable("mid") Long mid) throws NotFoundException {
+        User user = userService.getUserById(uid);
+        if (user == null) {
+            String errMsg = String.format("The user with id %s does not exist!", uid);
+            throw new NotFoundException(errMsg);
+        }
         Map mapToDelete = mapService.getUserMapById(mid, uid);
         if (mapToDelete == null) {
             String errMsg = String.format("The map with id %s of user with id %s does not exist", mid, uid);

@@ -13,6 +13,8 @@ public class MapService {
     @Autowired
     private MapRepository mapRepository;
 
+    public List<Map> getAllMaps() { return mapRepository.findAll(); }
+
     public Map createMap(Map map) {
         return mapRepository.save(map);
     }
@@ -20,6 +22,8 @@ public class MapService {
     public List<Map> getAllUserMaps(Long uid) {
         return mapRepository.findAllUserMaps(uid);
     }
+
+    public Map getMapById(Long id) { return mapRepository.findById(id).orElse(null); }
 
     public Map getUserMapById(Long id, Long uid) {
         return mapRepository.findUserMapById(uid, id);

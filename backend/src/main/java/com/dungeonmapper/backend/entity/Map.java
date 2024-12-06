@@ -1,6 +1,7 @@
 package com.dungeonmapper.backend.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,6 +31,7 @@ public class Map {
     private String description;
 
     @OneToMany(mappedBy = "mapId", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Floor> floors;
 
 }

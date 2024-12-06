@@ -70,7 +70,6 @@ public class UserController {
         }
         userToUpdate.setEmail(user.getEmail());
         userToUpdate.setPassword(user.getPassword());
-        this.userService.updateUser(userToUpdate);
         return new ResponseEntity<User>(userToUpdate, HttpStatus.OK);
     }
 
