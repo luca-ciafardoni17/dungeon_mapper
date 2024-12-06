@@ -1,6 +1,7 @@
 package com.dungeonmapper.backend.controller;
 
 import com.dungeonmapper.backend.entity.User;
+import com.dungeonmapper.backend.entity.Zone;
 import com.dungeonmapper.backend.exceptions.DuplicateException;
 import com.dungeonmapper.backend.exceptions.NotFoundException;
 import com.dungeonmapper.backend.service.UserService;
@@ -62,11 +63,19 @@ public class UserController {
 
     @SneakyThrows
     @PutMapping(value = "/user/{id}", produces = "application/json")
-    public ResponseEntity<User> apiUpdateUser(@PathVariable("id") Long id, @RequestBody User user) throws NotFoundException {
+    public ResponseEntity<User> apiUpdateUser(@PathVariable("id") Long id, @RequestBody User user) throws NotFoundException, DuplicateException {
         User userToUpdate = this.userService.getUserById(id);
         if (userToUpdate == null) {
             String errMsg = String.format("The user with id %s does not exist!", id);
             throw new NotFoundException(errMsg);
+        }
+        String userToUpdateEmail = user.getEmail();
+        List<User> foundUsers = userService.getAllUsers();
+        if (foundUsers.stream()
+                .filter(userMatch -> !userMatch.getId().equals(userToUpdate.getId()))
+                .anyMatch(userMatch -> userToUpdateEmail.equals(userMatch.getEmail()))){
+            String errMsg = String.format("The email %s is already in use!", userToUpdateEmail);
+            throw new DuplicateException(errMsg);
         }
         userToUpdate.setEmail(user.getEmail());
         userToUpdate.setPassword(user.getPassword());

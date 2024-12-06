@@ -100,7 +100,9 @@ public class FloorController {
         }
         String floorToUpdateName = floor.getName();
         List<Floor> foundFloors = floorService.getAllMapFloors(mid);
-        if (foundFloors.stream().anyMatch(floorMatch -> floorToUpdateName.equals(floorMatch.getName()))) {
+        if (foundFloors.stream()
+                .filter(floorMatch -> !floorMatch.getId().equals(floorToUpdate.getId()))
+                .anyMatch(floorMatch -> floorToUpdateName.equals(floorMatch.getName()))) {
             String errMsg = String.format("A floor with name %s already exists!", floorToUpdateName);
             throw new DuplicateException(errMsg);
         }

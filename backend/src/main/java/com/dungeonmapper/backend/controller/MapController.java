@@ -130,7 +130,9 @@ public class MapController {
         }
         String mapToUpdateName = map.getName();
         List<Map> foundMaps = mapService.getUserMapsByName(mapToUpdateName, uid);
-        if (foundMaps.stream().anyMatch(mapMatch -> mapToUpdateName.equals(mapMatch.getName()))){
+        if (foundMaps.stream()
+                .filter(mapMatch -> !mapMatch.getId().equals(mapToUpdate.getId()))
+                .anyMatch(mapMatch -> mapToUpdateName.equals(mapMatch.getName()))){
             String errMsg = String.format("A map with name %s already exists!", mapToUpdateName);
             throw new DuplicateException(errMsg);
         }

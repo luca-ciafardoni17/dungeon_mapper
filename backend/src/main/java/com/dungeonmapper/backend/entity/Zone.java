@@ -1,7 +1,10 @@
 package com.dungeonmapper.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
 
 @Entity
 @Data
@@ -15,6 +18,7 @@ public class Zone {
 
     @ManyToOne
     @JoinColumn(nullable = false)
+    @JsonBackReference
     private Floor floorId;
 
     @Column(nullable = false)
@@ -23,5 +27,9 @@ public class Zone {
     private String dimensions;
     @Column(nullable = false)
     private String description;
+    @Column(nullable = true)
+    private String gameInfo;
+    @Column(nullable = true)
+    private List<String> treasures;
 
 }
