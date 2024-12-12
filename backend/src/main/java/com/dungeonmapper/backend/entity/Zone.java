@@ -22,6 +22,10 @@ public class Zone {
     private Floor floorId;
 
     @Column(nullable = false)
+    private Long x;
+    @Column(nullable = false)
+    private Long y;
+    @Column(nullable = false)
     private String name;
     @Column(nullable = false)
     private String dimensions;
